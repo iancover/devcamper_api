@@ -4,12 +4,84 @@ const asyncHandler = require('../middleware/async');
 const geocoder = require('../utils/geocoder');
 const Bootcamp = require('../models/Bootcamp');
 
-// @desc    Get all bootcamps
+// @desc    Get all bootcamps (or specific bootcamps with query params)
   // @route   GET /api/v1/bootcamps
   // @access  Public 
-exports.getBootcamps = asyncHandler( async(req, res, next) => {
-  const bootcamps = await Bootcamp.find();
-  res.status(200).json({ success: true, count: bootcamps.length, data: bootcamps });
+  // @details: by default gets all with all fields, but to get specific fields
+    // - declare a var 'query' (not same as 'req.query')
+    // - bring in the 'request query' which is a JSON
+    // - create array of fields/params to filter out or exclude
+    // - loop thru those fields 'delete reqQuery[param]' will delete the 
+    //   key/value pair that matches that param/field
+    // - turn JSON query str to string
+    // - add the '$' to query keywords [in] for MongoDB to read 
+    // - save to query var passing query str parsed as JSON to model 
+    //   to search bootcamps in db 'Bootcamp.find()' that meet criteria
+    // - if there is a 'select', then we want to be able to pass the fields 
+    //   to mongoose method '.select()' because this method takes string 
+    //   separated by spaces 'name description etc' so we use 'split().join()'
+    //   then we can pass to 'select()'
+    // - then if 'sort' param we want to be able to sort using 'req.query.sort' and 'sort()'
+    //   or sort by date created by default, in descending order add '-' ex '-createdAt'
+    // - for pagination, and number of pages we parse the num with a radix of 10, or page 1 by default
+    //   and same for the limit of bootcamps per page and to skip to a page
+    // - save query to 'bootcamps' and pass as 'data'
+exports.getBootcamps = asyncHandler(async (req, res, next) => {
+  let query;
+  const reqQuery = { ...req.query };
+  const removeFields = ['select', 'sort', 'page', 'limit'];
+  removeFields.forEach(param => delete reqQuery[param]);
+
+  let queryStr = JSON.stringify(reqQuery);
+  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+  query = Bootcamp.find(JSON.parse(queryStr));
+
+  if (req.query.select) {
+    const fields = req.query.select.split(',').join(' ');
+    query = query.select(fields);
+  } 
+
+  if (req.query.sort) {
+    const sortBy = req.query.sort.split(',').join(' ');
+    query = query.sort(sortBy);
+  } else {
+    query = query.sort('-createdAt');
+  }
+
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 1;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const total = await Bootcamp.countDocuments();
+
+  query = query.skip(startIndex).limit(limit);
+  
+  const bootcamps = await query;
+
+  // pagination result
+  const pagination = {};
+
+  if (endIndex < total) {
+    pagination.next = {
+      page: page + 1,
+      limit
+    };
+  }
+
+  if (startIndex > 0) {
+    pagination.prev = {
+      page: page - 1,
+      limit
+    };
+  }
+
+  res.status(200).json({ 
+    success: true, 
+    count: bootcamps.length, 
+    pagination, 
+    data: bootcamps 
+  });
+  // reminder: when 'key === value' or 'key === variable'  -> just use 'key'
 });
 
 // @desc    Get single bootcamp
@@ -60,7 +132,7 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
 // @desc    Get bootcamps within radius
   // @route   GET /api/v1/bootcamps/radius/:zipcode/:distance
   // @access  Private
-  // @explained
+  // @details
     // - get zipcode and distance from params passed
     // - use the zipcode to access the location
     // - get the latitude and longitude from geocoder
