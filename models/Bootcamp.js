@@ -96,14 +96,12 @@ const BootcampSchema = new mongoose.Schema({
   }
 });
 
-// Create Bootcamp Slug from the Name
 BootcampSchema.pre('save', function(next) {
   // console.log('Slugify ran', this.name);
   this.slug = slugify(this.name, { lower: true });
   next();
 });
 
-// Geocode & Create Location Field
 BootcampSchema.pre('save', async function(next) {
   const loc = await geocoder.geocode(this.address);
   this.location = {
@@ -124,7 +122,11 @@ this.address = undefined;
 module.exports = mongoose.model('Bootcamp', BootcampSchema);
 
 // notes:
-  // slug: is a 'url' friendly string, ex. for a Devcentral Bootcamp, would use '/devcentral-bootcamp'
+  // slugify: creates a 'slug' which is a 'url' friendly string, ex. Devcentral Bootcamp, would use '/devcentral-bootcamp'
+  // geocoder: creates a point using lat/long
+  // 2dsphere: is MongoDB indexer to use a format for lat/long when indexing geocodes in db
+  // Schema.pre(): allows to use that data before saving to db, in this case slugifying and geocoding
+  // this.address = undefined - because we already geocoded and passed formatted address in 'this.location'
   // match url regex -> google 'javascript regex url', stackoverflow post: 'What is a good...for HTTP/HTTPS'
   // regex:
     // entire regex goes inside '/ /'
