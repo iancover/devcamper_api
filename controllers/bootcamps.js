@@ -8,7 +8,8 @@ const Bootcamp = require('../models/Bootcamp');
 // @desc    Get all bootcamps (or specific bootcamps with query params)
   // @route   GET /api/v1/bootcamps
   // @access  Public 
-  // @details: by default gets all with all fields, but to get specific fields
+  // @details: handles params passed on query for sorting, pagination, etc
+    // by default gets all with all fields, but to get specific fields must handle params
     // - declare a var 'query' (not same as 'req.query')
     // - bring in the 'request query' which is a JSON
     // - create array of fields/params to filter out or exclude
@@ -18,15 +19,16 @@ const Bootcamp = require('../models/Bootcamp');
     // - add the '$' to query keywords [in] for MongoDB to read 
     // - save to query var passing query str parsed as JSON to model 
     //   to search bootcamps in db 'Bootcamp.find()' that meet criteria
-    // - if there is a 'select', then we want to be able to pass the fields 
-    //   to mongoose method '.select()' because this method takes string 
-    //   separated by spaces 'name description etc' so we use 'split().join()'
-    //   then we can pass to 'select()'
-    // - then if 'sort' param we want to be able to sort using 'req.query.sort' and 'sort()'
-    //   or sort by date created by default, in descending order add '-' ex '-createdAt'
-    // - for pagination, and number of pages we parse the num with a radix of 10, or page 1 by default
+    // - if there is 'select=param1,param2', we want to extract params without commas 
+    //   to pass to mongoose method: .select('param1 param2') to display only certain
+    //   fields which we want to extract
+    // - then if 'sort=field' query we wanna sort by that field or by date by default
+    //   using 'createdAt' or descending (newest first) '-createdAt'
+    // - for pagination, we parse the num with a radix of 10, or set default
     //   and same for the limit of bootcamps per page and to skip to a page
+    //   helpful when creating UI to click 'next'/'prev' page
     // - save query to 'bootcamps' and pass as 'data'
+    // reminder: if passing obj { var1: var1, var2: var2 } can use instead { var1, var2 }
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
   let query;
   const reqQuery = { ...req.query };
@@ -50,16 +52,13 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
   }
 
   const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
   const total = await Bootcamp.countDocuments();
 
   query = query.skip(startIndex).limit(limit);
-  
   const bootcamps = await query;
-
-  // pagination result
   const pagination = {};
 
   if (endIndex < total) {
@@ -82,7 +81,7 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
     pagination, 
     data: bootcamps 
   });
-  // reminder: when 'key === value' or 'key === variable'  -> just use 'key'
+
 });
 
 // @desc    Get single bootcamp

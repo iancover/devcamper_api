@@ -11,47 +11,55 @@ const express = require('express');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const colors = require('colors');
+
+// Middleware
+  // import errorHandler middleware
+  // import temp data
+  // import env variables
+  // connect to db (no need to import mongoose on main module)
+  // import routes
 const errorHandler = require('./middleware/error');
 const connectDB = require('./config/db');
-
-// Load env variables
 dotenv.config({ path: './config/config.env'});
-
-// Connect to database
 connectDB();
-
-// Route files
 const bootcamps = require('./routes/bootcamps');
+const courses = require('./routes/courses');
 
 // App
+  // build express app & use middleware
+  // use express JSON Body Parser
+  // use error handler middleware
+  // use morgan 'dev' option logger when on development stage
+  // use endpoint as root '/' for 'bootcamps' routers
 const app = express();
 
-// Body Parser
 app.use(express.json());
 
-// Dev Log Middleware
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
 // Mount Routers
 app.use('/api/v1/bootcamps', bootcamps);
+app.use('/api/v1/courses', courses);
 
-// Error Handler (must be after previous app.use('', bootcamps))
+// Error Handler (must be after mount routers)
 app.use(errorHandler);
 
-// Port & Server
+
+// Server 
+  // use port env variable or port 5000 as default
+  // setup server with stage log and port
+  // process.on() - handle rejections if can't connect
+    // - handles any unhandled promises, ex. if unable to connect to db for any reason
+    // - logs the error in '.red' using colors
+    // - closes server and exits process
 const PORT = process.env.PORT || 5000;
 const server = app.listen(
   PORT, 
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold)
 );
 
-// Handle Rejections
-  // handles unhandled promise rejections, ex. connecting to db
-  // or when changing pwd on db host
-  // closes the server in case this happens and exits process
-  // '.red' logs the error msg to console using 'colors' pkg
 process.on('unhandledRejection', (err, promise) => {
   console.log(`Error: ${err.message}`.red);
   server.close(() => process.exit(1));
