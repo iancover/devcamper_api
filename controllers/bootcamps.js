@@ -1,4 +1,5 @@
-
+// Bootcamps REST API
+  // this module controls the CRUD requests
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/async');
 const geocoder = require('../utils/geocoder');

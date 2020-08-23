@@ -1,4 +1,7 @@
-
+// Bootcamps REST Routers
+  // this module handles routes for bootcamp requests
+  // routers make code more efficient that way we can 
+  // simply apply the request controller function
 const express = require('express');
 
 const { 

@@ -1,4 +1,5 @@
 // DB Connection w/Mongoose
+  // this module handles connection to db
   // 'mongoose.connect()' returns a promise
   // so you can use 'async/await'
   // '.cyan.underline.bold' is 'colors' pkg

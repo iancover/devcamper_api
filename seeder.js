@@ -1,4 +1,5 @@
-// Notes:
+// Data Seeder
+  // this module connects to db, seeds and destroys data from '/_data' 
   // fs - node module that provides API to interact with file system
   // mongoose - to connect to db
   // dotenv - import env variables
@@ -31,7 +32,6 @@ const bootcamps = JSON.parse(fs.readFileSync(`${__dirname}/_data/bootcamps.json`
 const importData = async () => {
   try {
     await Bootcamp.create(bootcamps);
-
     console.log('Data Imported...'.green.inverse);
     process.exit();
   } catch (err) {
@@ -42,7 +42,6 @@ const importData = async () => {
 const deleteData = async () => {
   try {
     await Bootcamp.deleteMany();
-
     console.log('Data Destroyed...'.red.inverse);
     process.exit();
   } catch (err) {
