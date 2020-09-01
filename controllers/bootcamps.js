@@ -37,7 +37,10 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
 
   let queryStr = JSON.stringify(reqQuery);
   queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
-  query = Bootcamp.find(JSON.parse(queryStr));
+
+  // populate() to use virtuals for array of courses
+  //  can also pass an object with options:  populate('courses', { opt1, opt2, etc... })
+  query = Bootcamp.find(JSON.parse(queryStr)).populate('courses');
 
   if (req.query.select) {
     const fields = req.query.select.split(',').join(' ');
@@ -121,10 +124,13 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
   // @route   DELETE /api/v1/bootcamps/:id
   // @access  Private
 exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
-  const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+  // const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+  //    to trigger the middleware on 'remove()' we just find by id instead then call middleware
+  const bootcamp = await Bootcamp.findById(req.params.id);
   if (!bootcamp) {
     return next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404));
   }
+  bootcamp.remove();
   res.status(200).json({ success: true, data: {} });
 });
 
