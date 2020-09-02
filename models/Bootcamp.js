@@ -100,6 +100,16 @@ const BootcampSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
+// Middleware Hooks & Virtual
+  // 'save()' function (which happens when saving to db) triggers these hooks 'pre()', 'post()', etc...
+  //    1. synch creates a url-friendly 'slug' from bootcamp name
+  //    2. async formats address data for geocode api and saves as 'location' &
+  //       prevents old address format to be saved in db 'this.address = undefined'
+  //    3. async cascade delete that bootcamps courses when the bootcamp is deleted
+  //    4. virtual(): are properties, not middleware and are useful because can use
+  //        'get()' and 'set()' without persisting, so can use for formatting or combining fields
+  //       must add the 'toJSON: { virtuals: true }, toObject: { virtuals: true } at bottom of schema
+  //       in this case it reverse populates the courses
 BootcampSchema.pre('save', function(next) {
   // console.log('Slugify ran', this.name);
   this.slug = slugify(this.name, { lower: true });
@@ -119,20 +129,16 @@ BootcampSchema.pre('save', async function(next) {
     country: loc[0].countryCode
   };
 
-  // Do not save address in DB
   this.address = undefined;
   next();
 });
 
-// Cascade delete courses when a bootcamp is deleted
 BootcampSchema.pre('remove', async function(next) {
   console.log(`Courses being removed from bootcamp ${this._id}`);
   await this.model('Course').deleteMany({ bootcamp: this._id });
   next();
 });
 
-
-// Reverse populate with virtuals
 BootcampSchema.virtual('courses', {
   ref: 'Course',
   localField: '_id',
