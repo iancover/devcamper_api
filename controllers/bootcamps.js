@@ -1,11 +1,18 @@
 // Bootcamps REST API
-  // this module controls the CRUD requests
+  // this module controls the CRUD requests async using middleware async handler
+// -----------------------------------------------------------------
+
+// Middlware & Model Import
+  // ErrorResponse - helps build a response message
+  // asyncHandler - helps handle middleware async using promises and catching errors
+  // geocoder - middleware to use maps and geocode locations
+  // Bootcamp - schema/models
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/async');
 const geocoder = require('../utils/geocoder');
 const Bootcamp = require('../models/Bootcamp');
 
-// @desc    Get all bootcamps (or specific bootcamps with query params)
+// @desc    Get all Bootcamps (or specific bootcamps with query params)
   // @route   GET /api/v1/bootcamps
   // @access  Public 
   // @details: handles params passed on query for sorting, pagination, etc
@@ -19,6 +26,7 @@ const Bootcamp = require('../models/Bootcamp');
     // - add the '$' to query keywords [in] for MongoDB to read 
     // - save to query var passing query str parsed as JSON to model 
     //   to search bootcamps in db 'Bootcamp.find()' that meet criteria
+    //   & populate(): for using virtuals to get array of courses per bootcamp
     // - if there is 'select=param1,param2', we want to extract params without commas 
     //   to pass to mongoose method: .select('param1 param2') to display only certain
     //   fields which we want to extract
@@ -38,8 +46,6 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
   let queryStr = JSON.stringify(reqQuery);
   queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
 
-  // populate() to use virtuals for array of courses
-  //  can also pass an object with options:  populate('courses', { opt1, opt2, etc... })
   query = Bootcamp.find(JSON.parse(queryStr)).populate('courses');
 
   if (req.query.select) {
