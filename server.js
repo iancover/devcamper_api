@@ -1,4 +1,6 @@
 // Devcamper API
+// ----------------------
+
 // Dependencies
   // - express: to make your app, 'app = express()' ex. app.use(), app.listen()
   // - dotenv: to use environment variables using 'process.env' and to look for the vars in 'config.env'
@@ -12,48 +14,43 @@ const dotenv = require('dotenv');
 const morgan = require('morgan');
 const colors = require('colors');
 
-// Middleware
-  // import errorHandler middleware
-  // import temp data
-  // import env variables
-  // connect to db (no need to import mongoose on main module)
-  // import routes
+// Import Error & DB Connection
+  // errorHandler - middleware
+  // connectDB - mongoose connection to MongoDB
 const errorHandler = require('./middleware/error');
 const connectDB = require('./config/db');
+
+// Config Env & Connect DB
 dotenv.config({ path: './config/config.env'});
 connectDB();
+
+// Import Routers
 const bootcamps = require('./routes/bootcamps');
 const courses = require('./routes/courses');
 
-// App
+// App Setup
   // build express app & use middleware
-  // use express JSON Body Parser
-  // use error handler middleware
-  // use morgan 'dev' option logger when on development stage
-  // use endpoint as root '/' for 'bootcamps' routers
+  // - JSON Body Parser
+  // - morgan logger: if on 'dev' stage to see logs
+  // - setup root router endpoints, to simply use '/'
+  // - error handler middleware to catch errors and log messages
 const app = express();
-
 app.use(express.json());
-
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
-
-// Mount Routers
 app.use('/api/v1/bootcamps', bootcamps);
 app.use('/api/v1/courses', courses);
-
-// Error Handler (must be after mount routers)
 app.use(errorHandler);
 
 
-// Server 
+// Server Setup
   // use port env variable or port 5000 as default
-  // setup server with stage log and port
-  // process.on() - handle rejections if can't connect
+  // setup server with stage log and port 'app.listen(uri, fn)'
+  // process.on() - handle rejections and 'server.close()' if can't connect
     // - handles any unhandled promises, ex. if unable to connect to db for any reason
     // - logs the error in '.red' using colors
-    // - closes server and exits process
+    // - closes server and exits process (not sure why pass the 1)
 const PORT = process.env.PORT || 5000;
 const server = app.listen(
   PORT, 
