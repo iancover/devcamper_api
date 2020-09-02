@@ -4,6 +4,7 @@
   // simply apply the request controller function
 const express = require('express');
 
+// Import Bootcamp Ctrlr & Courses Router
 const { 
   getBootcamps, 
   getBootcamp, 
@@ -13,12 +14,17 @@ const {
   getBootcampsInRadius
  } = require('../controllers/bootcamps');
 
- // Include other resource routers
 const courseRouter = require('./courses');
 
+// Router Setup
+  // is like a 'mini-application' capable of performing middleware and routing functions
 const router = express.Router();
 
-// Re-route into other resource routers
+// Routes
+  // - re-route from course router to get courses per bootcamp
+  // - route per radius, zipcode and distance
+  // - route root to get all bootcamps or create one
+  // - route to get, update or delete single bootcamp
 router.use('/:bootcampId/courses', courseRouter);
 
 router
