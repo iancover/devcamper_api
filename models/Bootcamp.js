@@ -101,7 +101,8 @@ const BootcampSchema = new mongoose.Schema({
 });
 
 // Middleware Hooks & Virtual
-  // 'save()' function (which happens when saving to db) triggers these hooks 'pre()', 'post()', etc...
+  // 'save()'  triggers these hooks 'pre('save')', 'post('save')', etc...
+  // note: 'create()' fires the 'save()'
   //    1. synch creates a url-friendly 'slug' from bootcamp name
   //    2. async formats address data for geocode api and saves as 'location' &
   //       prevents old address format to be saved in db 'this.address = undefined'
