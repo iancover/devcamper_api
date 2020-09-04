@@ -9,10 +9,12 @@
   // - morgan: is a logger middleware, note: we also created custom 'logger' middleware (disabled)
   // - colors: adds colors to the console for labeling log output
   // - connectDB: to manage connection using 'mongoose' on 'db.js'
+const path = require('path');
 const express = require('express');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const colors = require('colors');
+const fileupload = require('express-fileupload');
 
 // Import Error & DB Connection
   // errorHandler - middleware
@@ -33,12 +35,15 @@ const courses = require('./routes/courses');
   // - JSON Body Parser
   // - morgan logger: if on 'dev' stage to see logs
   // - setup root router endpoints, to simply use '/'
+  // - express-fileupload: npm pkg to upload images
   // - error handler middleware to catch errors and log messages
 const app = express();
 app.use(express.json());
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
+app.use(fileupload());
+app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/v1/bootcamps', bootcamps);
 app.use('/api/v1/courses', courses);
 app.use(errorHandler);

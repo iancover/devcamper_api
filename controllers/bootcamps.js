@@ -7,6 +7,7 @@
   // asyncHandler - helps handle middleware async using promises and catching errors
   // geocoder - middleware to use maps and geocode locations
   // Bootcamp - schema/models
+const path = require('path');
 const ErrorResponse = require('../utils/errorResponse');
 const asyncHandler = require('../middleware/async');
 const geocoder = require('../utils/geocoder');
@@ -112,9 +113,11 @@ exports.createBootcamp = asyncHandler(async (req, res, next) => {
   res.status(201).json({ success: true, data: bootcamp });
 });
 
-// @desc    Update bootcamp
+// @desc    Update Bootcamp
   // @route   PUT /api/v1/bootcamps/:id
   // @access  Private
+  // @details
+    // - async findByIdAndUpdate( id, update data, options)
 exports.updateBootcamp = asyncHandler(async (req, res, next) => {
   const bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
@@ -126,12 +129,14 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
   res.status(200).json({ success: true, data: bootcamp });
 });
 
-// @desc    Delete bootcamp
+// @desc    Delete Bootcamp
   // @route   DELETE /api/v1/bootcamps/:id
   // @access  Private
+  // @details
+    // [opt]: const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+    // - we dont use this one so we can apply middleware 'pre('remove')' triggered on 'bootcamp.remove()' 
 exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
-  // const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
-  //    to trigger the middleware on 'remove()' we just find by id instead then call middleware
+
   const bootcamp = await Bootcamp.findById(req.params.id);
   if (!bootcamp) {
     return next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404));
@@ -141,7 +146,7 @@ exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
 });
 
 
-// @desc    Get bootcamps within radius
+// @desc    Get Bootcamps within Radius
   // @route   GET /api/v1/bootcamps/radius/:zipcode/:distance
   // @access  Private
   // @details
@@ -165,5 +170,47 @@ exports.getBootcampsInRadius = asyncHandler(async (req, res, next) => {
     success: true,
     count: bootcamps.length,
     data: bootcamps
+  });
+});
+
+// @desc    Upload Photo for Bootcamp
+  // @route   PUT /api/v1/bootcamps/:id/photo
+  // @access  Private
+  // @details
+exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
+  const bootcamp = await Bootcamp.findById(req.params.id);
+  if (!bootcamp) {
+    return next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404));
+  }
+  if (!req.files) {
+    return next(new ErrorResponse(`Please upload a file`, 400));
+  } 
+  const file = req.files.file;
+  
+  // Verify img is a photo
+  if (!file.mimetype.startsWith('image')) {
+    return next(new ErrorResponse(`Please upload an image file`, 400));
+  }
+
+  // Check filesize is too big
+  if (file.size > process.env.MAX_FILE_UPLOAD) {
+    return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_UPLOAD}`, 400));
+  }
+
+  // Create custom file name
+    // - wanna create unique names for files that are uploaded in case other user uploads img with same name
+    //   system will override it
+    // - using built-in pkg 'path' which gets file extension: 'path.parse().ext'
+  file.name = `photo_${bootcamp._id}${path.parse(file.name).ext}`;
+  file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, async err => {
+    if (err) {
+      console.error(err);
+      return next(new ErrorResponse(`Problem with file upload`, 500));
+    }
+    await Bootcamp.findByIdAndUpdate(req.params.id, { photo: file.name });
+    res.status(200).json({
+      success: true,
+      data: file.name
+    });
   });
 });

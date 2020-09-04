@@ -50,7 +50,6 @@ const CourseSchema = new mongoose.Schema({
   // - so when the model gets created this updates the tuition cost
   //   by averaging out the aggregated tuition amts based on amt of courses
 CourseSchema.statics.getAverageCost = async function(bootcampId) {
-  console.log('Calculating avg cost...'.blue);
   const obj = await this.aggregate([
     { $match: { bootcamp: bootcampId } },
     { $group: { _id: '$bootcamp', averageCost: { $avg: '$tuition' } } }
