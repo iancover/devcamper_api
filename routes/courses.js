@@ -9,6 +9,9 @@ const {
   deleteCourse 
 } = require('../controllers/courses');
 
+const Course = require('../models/Course');
+const advancedResults = require('../middleware/advancedResults');
+
 // Router Setup
   // - must merge url params to pass bootcamp id from bootcamps router
   //   so controllers can get the courses of a bootcamp
@@ -17,9 +20,12 @@ const router = express.Router({ mergeParams: true });
 // Routes
 router
   .route('/')
-  .get(getCourses)
+  .get(advancedResults(Course, {
+    path: 'bootcamp',
+    select: 'name description'
+  }), getCourses)
   .post(addCourse);
-
+  
 router
   .route('/:id')
   .get(getCourse)
