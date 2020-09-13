@@ -52,6 +52,7 @@ UserSchema.pre('save', async function(next) {
 });
 
 // Sign JWT and Return
+  // it is not an async process, has to occur in certain order
   // - 'methods': used on what is modeled
   // - we generate a token 'jwt' which has 3 parts (header, payload, verify sign)
   // - we can look at token 'jwt' and extract info from 'payload'
@@ -61,6 +62,12 @@ UserSchema.methods.getSignedJwtToken = function() {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE
   });
+};
+
+// Verify Password
+  // - asynchronously, see if user entered password matches the hashed pwd in database
+UserSchema.methods.matchPassword = async function(enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
 
