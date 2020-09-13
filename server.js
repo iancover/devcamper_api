@@ -15,6 +15,7 @@ const dotenv = require('dotenv');
 const morgan = require('morgan');
 const colors = require('colors');
 const fileupload = require('express-fileupload');
+const cookieParser = require('cookie-parser');
 
 // Import Error & DB Connection
   // errorHandler - middleware
@@ -40,6 +41,7 @@ const auth = require('./routes/auth');
   // - error handler middleware to catch errors and log messages
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }

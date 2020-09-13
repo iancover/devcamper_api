@@ -10,7 +10,8 @@ const User = require('../models/User');
     // called when registering a new user
     // - extract 'name, email, pwd, role' from body
     // - 'user': create a user with data
-    // - 'token': create jwt token on the user calling middleware using user's id '_id'
+    // - Create cookie with session token
+    //  'sendTokenResponse()'
 exports.register = asyncHandler(async (req, res, next) => {
   const { name, email, password, role } = req.body;
 
@@ -21,8 +22,7 @@ exports.register = asyncHandler(async (req, res, next) => {
     role
   });
 
-  const token = user.getSignedJwtToken();
-  res.status(200).json({ success: true, token });
+  sendTokenResponse(user, 200, res);
 });
 
 
@@ -38,9 +38,8 @@ exports.register = asyncHandler(async (req, res, next) => {
     //  'user = await User.findOne().select(+pwd)': check if user w/pwd exists in db, or create error msg
     // - Compare pwd entered and hashed in db
     //  'user.matchPassword()': pass pwd to method to verify if pwd entered and hashed match, or create error msg
-    // - Create token for session
-    //  'token': create a token to use credentials for this session, each login creates new session token
-  
+    // - Create cookie with session token
+    //  'sendTokenResponse()'
 exports.login = asyncHandler(async (req, res, next) => {
 
   const { email, password } = req.body;
@@ -58,7 +57,37 @@ exports.login = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Invalid credentials', 401));
   }
 
+  sendTokenResponse(user, 200, res);
+});
+
+
+// Create Cookie from Token
+  // creates a session token to get access with credentials 'signed in status' and stores in cookies to save to browser
+  // so not to have to request token everytime, tokens are unique for that session so user can have private access
+  // until session expires or cookies
+  // - need to set same 30 days expiration in cookie as well, so we pass options
+  //   in options create new Date() object making expire date 30 days from today
+  // - set 'secure' flag only when in 'production' not development
+  // - send response with 'statusCode', tokenized cookie w/options
+const sendTokenResponse = (user, statusCode, res) => {
   const token = user.getSignedJwtToken();
 
-  res.status(200).json({ success: true, token });
-});
+  const options = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true
+  };
+
+  if (process.env.NODE_ENV === 'production') {
+    options.secure = true;
+  }
+
+  res
+    .status(statusCode)
+    .cookie('token', token, options)
+    .json({ 
+      success: true,
+      token
+    });
+};
