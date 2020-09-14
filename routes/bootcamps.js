@@ -24,6 +24,11 @@ const courseRouter = require('./courses');
   // is like a 'mini-application' capable of performing middleware and routing functions
 const router = express.Router();
 
+// Protect Routes Middleware
+  // anywhere the user must be logged in, we pass this middleware
+  // - user needs to be logged in to upload photo, create & update bootcamp
+const { protect } = require('../middleware/auth');
+
 // Routes
   // - re-route from course router to get courses per bootcamp
   // - route per radius, zipcode and distance
@@ -37,17 +42,17 @@ router
 
 router
   .route('/:id/photo')
-  .put(bootcampPhotoUpload);
+  .put(protect, bootcampPhotoUpload);
 
 router
   .route('/')
   .get(advancedResults(Bootcamp, 'courses'), getBootcamps)
-  .post(createBootcamp);
+  .post(protect, createBootcamp);
 
 router
   .route('/:id')
   .get(getBootcamp)
-  .put(updateBootcamp)
+  .put(protect, updateBootcamp)
   .delete(deleteBootcamp);
 
 module.exports = router;

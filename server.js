@@ -34,11 +34,12 @@ const auth = require('./routes/auth');
 
 // App Setup
   // build express app & use middleware
-  // - JSON Body Parser
-  // - morgan logger: if on 'dev' stage to see logs
-  // - setup root router endpoints, to simply use '/'
-  // - express-fileupload: npm pkg to upload images
-  // - error handler middleware to catch errors and log messages
+  // - 'express.json()': JSON Body Parser
+  // - 'cookieParser()': to use cookies with tokens
+  // - 'morgan(dev)': morgan logger if on 'dev' stage to see logs
+  // - 'fileupload()': to use 'fs' pkg for accessing images on local files
+  // - mount router endpoints, to setup root '/'
+  // - 'errorHandler': middleware to catch errors and log messages
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
