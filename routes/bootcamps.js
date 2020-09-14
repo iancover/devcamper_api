@@ -24,35 +24,39 @@ const courseRouter = require('./courses');
   // is like a 'mini-application' capable of performing middleware and routing functions
 const router = express.Router();
 
-// Protect Routes Middleware
+// Protect/Authorize Routes Middleware
   // anywhere the user must be logged in, we pass this middleware
-  // - user needs to be logged in to upload photo, create & update bootcamp
-const { protect } = require('../middleware/auth');
+  // - user needs to be logged in to: upload photo, create, update & delete bootcamps
+const { protect, authorize } = require('../middleware/auth');
 
-// Routes
+// Re-route: Bootcamp Courses
   // - re-route from course router to get courses per bootcamp
-  // - route per radius, zipcode and distance
-  // - route root to get all bootcamps or create one
-  // - route to get, update or delete single bootcamp
 router.use('/:bootcampId/courses', courseRouter);
 
+// Route: Get Bootcamps in Radius
 router
   .route('/radius/:zipcode/:distance')
   .get(getBootcampsInRadius);
 
+// Route: Update Bootcamp Photo
+  // - 'protect' because must be existing user and logged in to update photo
 router
   .route('/:id/photo')
-  .put(protect, bootcampPhotoUpload);
+  .put(protect, authorize('publisher', 'admin'), bootcampPhotoUpload);
 
+// Route: Get Bootcamps/Add New Bootcamp
+  // - 'protect' because user must be logged in to add bootcamp
 router
   .route('/')
   .get(advancedResults(Bootcamp, 'courses'), getBootcamps)
-  .post(protect, createBootcamp);
+  .post(protect, authorize('publisher', 'admin'), createBootcamp);
 
+// Route: Get/Update/Delete Bootcamp
+  // - 'protect' because user must be logged in to update/delete
 router
   .route('/:id')
   .get(getBootcamp)
-  .put(protect, updateBootcamp)
-  .delete(deleteBootcamp);
+  .put(protect, authorize('publisher', 'admin'), updateBootcamp)
+  .delete(protect, authorize('publisher', 'admin'), deleteBootcamp);
 
 module.exports = router;

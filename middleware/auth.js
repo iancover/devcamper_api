@@ -8,6 +8,8 @@ const User = require('../models/User');
 // Protect Routes
   // - 'req.headers.authorization': we can access the req headers, in this case the 'authorization' which
   //    contains 'Bearer...' and the token, so we extract the token w/split()[1]
+  // - '!token': no token send error
+  // - 'try/catch': verify token
 exports.protect = asyncHandler(async function(req, res, next) {
   let token;
 
@@ -32,3 +34,13 @@ exports.protect = asyncHandler(async function(req, res, next) {
     return next(new ErrorResponse('Not authorize to access this route', 401));
   }
 });
+
+// Grant Role Specific Access
+exports.authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(new ErrorResponse(`User role ${req.user.role} is not authorized to access this route`, 403));
+    }
+    next();
+  };
+};

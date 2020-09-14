@@ -20,7 +20,7 @@ const router = express.Router({ mergeParams: true });
 // Protect Routes Middleware
   // anywhere the user must be logged in, we pass this middleware
   // - user needs to be logged in to: create, update & delete courses
-const { protect } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 
 // Route: Add Course
   // - route to get courses applying 'advancedResults()' middleware to just get 'name' & 'desc' of course
@@ -32,14 +32,14 @@ router
     path: 'bootcamp',
     select: 'name description'
   }), getCourses)
-  .post(protect, addCourse);
+  .post(protect, authorize('publisher', 'admin'), addCourse);
   
 // Route: Update & Delete Course
   // - gets course w/id updates or deletes, 'protect' so only logged in user can do it
 router
   .route('/:id')
   .get(getCourse)
-  .put(protect, updateCourse)
-  .delete(protect, deleteCourse);
+  .put(protect, authorize('publisher', 'admin'), updateCourse)
+  .delete(protect, authorize('publisher', 'admin'), deleteCourse);
 
 module.exports = router;

@@ -41,8 +41,11 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
-// Encrypt Password Middleware (Bcryptjs)
-  // - want to encrypt prior to saving, triggered by 'User.create()'
+// MIDDLEWARE
+// -----------------
+
+// Encrypt Password
+  // encrypts or 'hashes' pwd prior to saving, which is triggered on 'User.create()'
   // - 'salt' is the random data that is created to hide password
   // - bcrypt.genSalt(10): generate a salt of 10 characters
   // - bcrypt.hash(pwd, salt): 'hash' password, or make pwd the salt created
@@ -51,11 +54,10 @@ UserSchema.pre('save', async function(next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Sign JWT and Return
-  // it is not an async process, has to occur in certain order
+// Create Web Token
+  // creates token synchronously w/jsonwebtoken that expires in 'JWT_EXPIRE' time
   // - 'methods': used on what is modeled
-  // - we generate a token 'jwt' which has 3 parts (header, payload, verify sign)
-  // - we can look at token 'jwt' and extract info from 'payload'
+  // - 'jwt.sign(payload, key, options)': creats a web token which has 3 parts 'header.payload.verify-signature'
   // - 'this' represents the user, so we pass '_id' with underscore to 'jwt.sign()' 
   //   passing also env variables for secret key and expiration time (30 days) 
 UserSchema.methods.getSignedJwtToken = function() {
