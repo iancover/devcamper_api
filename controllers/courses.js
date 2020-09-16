@@ -5,15 +5,19 @@ const Course = require('../models/Course');
 const Bootcamp = require('../models/Bootcamp');
 
 // @desc    Get All Courses
-  // @route   GET /api/v1/courses
   // @route   GET /api/v1/bootcamps/:bootcampId/courses
+  // @route   GET /api/v1/courses
   // @access  Public 
   // @details
+    // this is for either seeing courses for a bootcamp or seeing list of all courses
+    // - if there is a bootcamp id in request params, fetch courses associated w that bootcamp
+    //   'Course' schema has 'bootcamp' field w/ 'mongoose.Schema.ObjectId', to relate course/bootcamp
+    //   use 'return' to send response data and end process
+    // - else send response with 'advancedResults' to view all courses
 exports.getCourses = asyncHandler(async (req, res, next) => {
   
   if (req.params.bootcampId) {
     const courses = await Course.find({ bootcamp: req.params.bootcampId });
-
     return res.status(200).json({
       success: true,
       count: courses.length,
@@ -29,6 +33,10 @@ exports.getCourses = asyncHandler(async (req, res, next) => {
   // @route   GET /api/v1/courses/:id
   // @access  Public 
   // @details
+    // - fetching the course by id and populating the 'path: 'bootcamp' it belongs to
+    //   also 'name & desc' of course
+    // - if course doesn't exist, create error response
+    // - otherwise send response with 'course' data 
 exports.getCourse = asyncHandler(async (req, res, next) => {
   const course = await Course.findById(req.params.id).populate({
     path: 'bootcamp',
@@ -52,18 +60,21 @@ exports.getCourse = asyncHandler(async (req, res, next) => {
   // @route   POST /api/v1/bootcamps/:bootcampId/courses
   // @access  Private 
   // @details
+    // - 'req.body.bootcamp = req.params.bootcampId': assigns the course to the bootcamp
+    //                   remember 'CourseSchema' has a 'bootcamp' field to reference course
+    //                   thats what this handles
+    // - then we're fetching that bootcamp with id and if doesn't exist creating error response
+    //   otherwise creating the course sending data
 exports.addCourse = asyncHandler(async (req, res, next) => {
   req.body.bootcamp = req.params.bootcampId;
 
   const bootcamp = await Bootcamp.findById(req.params.bootcampId);
-
   if (!bootcamp) {
     return next(
       new ErrorResponse(`No bootcamp with the id of ${req.params.bootcampId}`), 
       404
     );
   }
-
   const course = await Course.create(req.body);
 
   res.status(200).json({
@@ -76,6 +87,10 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
   // @route   PUT /api/v1/courses/:id
   // @access  Private 
   // @details
+    // - fetch course with id & if doesn't exist to create error response
+    // - otherwise fetch and update '[document].findByIdAndUpdate(id, body, options)'
+    //   'new: true' since its the updated and 'runValidators' to check all fields are there
+    // - send response data
 exports.updateCourse = asyncHandler(async (req, res, next) => {
   let course = await Course.findById(req.params.id);
 
@@ -101,6 +116,8 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
   // @route   DELETE /api/v1/courses/:id
   // @access  Private 
   // @details
+    // - fetch course by id & create error response if doesn't exist
+    // - otherwise remove it and send response data
 exports.deleteCourse = asyncHandler(async (req, res, next) => {
   const course = await Course.findById(req.params.id);
 

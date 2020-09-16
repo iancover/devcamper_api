@@ -39,7 +39,18 @@ exports.getBootcamp = asyncHandler(async (req, res, next) => {
 // @desc    Create bootcamp
   // @route   POST /api/v1/bootcamps
   // @access  Private
+  // @details 
+    // - 'req.body.user = req.user.id': assigns user creating bootcamp to it
+    //                    on 'BootcampSchema' we assigned field 'user', so the
+    //                    'req.body' will have a user field, we're assigning the 'id' to it
+    // - prevent 'user' from creating bootcamp if already has created one since only 'admin' can
+    //   by checking if there is a published bootcamp by that user w/id, otherwise create bootcamp
 exports.createBootcamp = asyncHandler(async (req, res, next) => {
+  req.body.user = req.user.id;
+  const publishedBootcamp = await Bootcamp.findOne({ user: req.user.id });
+  if (publishedBootcamp && req.user.role !== 'admin') {
+    return next(new ErrorResponse(`The user with ID ${req.user.id} has already published a bootcamp`), 400);
+  }
   const bootcamp = await Bootcamp.create(req.body);
   res.status(201).json({ success: true, data: bootcamp });
 });
@@ -48,15 +59,26 @@ exports.createBootcamp = asyncHandler(async (req, res, next) => {
   // @route   PUT /api/v1/bootcamps/:id
   // @access  Private
   // @details
-    // - async findByIdAndUpdate( id, update data, options)
+    // - find the bootcamp by id
+    // - make sure 'user' is the bootcamp owner or 'admin'
+    // - then find by id and pass new body data, w/options 'new' to set
+    //   as new data and run validators to ensure all fields are there
 exports.updateBootcamp = asyncHandler(async (req, res, next) => {
-  const bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true
-  });
+  let bootcamp = await Bootcamp.findById(req.params.id);
+
   if (!bootcamp) {
     return next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404));
   }
+
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(new ErrorResponse(`User ${req.params.id} is not authorized to update this bootcamp`, 401));
+  }
+
+  bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true
+  });
+
   res.status(200).json({ success: true, data: bootcamp });
 });
 
@@ -64,13 +86,15 @@ exports.updateBootcamp = asyncHandler(async (req, res, next) => {
   // @route   DELETE /api/v1/bootcamps/:id
   // @access  Private
   // @details
-    // [opt]: const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
-    // - we dont use this one so we can apply middleware 'pre('remove')' triggered on 'bootcamp.remove()' 
+    // - we dont use 'findByIdAndDelete(req.params.id)' because we have midware hooks triggerd pre remove
+    //   and we must also check if it exists or not for error response & make sure owner or admin is deleting 
 exports.deleteBootcamp = asyncHandler(async (req, res, next) => {
-
   const bootcamp = await Bootcamp.findById(req.params.id);
   if (!bootcamp) {
     return next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404));
+  }
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(new ErrorResponse(`User ${req.params.id} is not authorized to delete this bootcamp`, 401));
   }
   bootcamp.remove();
   res.status(200).json({ success: true, data: {} });
@@ -108,10 +132,17 @@ exports.getBootcampsInRadius = asyncHandler(async (req, res, next) => {
   // @route   PUT /api/v1/bootcamps/:id/photo
   // @access  Private
   // @details
+    // - fetch bootcamp by id, if not create error response
+    // - check if authorized user to upload pic, must be 'publisher' or 'admin'
+    // - if req has no 'files', also create error response
+    // 
 exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
   const bootcamp = await Bootcamp.findById(req.params.id);
   if (!bootcamp) {
     return next(new ErrorResponse(`Bootcamp not found with id of ${req.params.id}`, 404));
+  }
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(new ErrorResponse(`User ${req.params.id} is not authorized to update this bootcamp`, 401));
   }
   if (!req.files) {
     return next(new ErrorResponse(`Please upload a file`, 400));

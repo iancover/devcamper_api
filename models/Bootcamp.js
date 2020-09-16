@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const slugify = require('slugify');
 const geocoder = require('../utils/geocoder');
 
+// Bootcamp Schema
+  // 'location': for geocoding api, which middleware is below
+  // 'user': field sets relationship to a user, so only that user or admin can delete/update
 const BootcampSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -94,29 +97,36 @@ const BootcampSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+  user: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'User',
+    required: true
   }
 }, {
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
 
-// Middleware Hooks & Virtual
-  // 'save()'  triggers these hooks 'pre('save')', 'post('save')', etc...
-  // note: 'create()' fires the 'save()'
-  //    1. synch creates a url-friendly 'slug' from bootcamp name
-  //    2. async formats address data for geocode api and saves as 'location' &
-  //       prevents old address format to be saved in db 'this.address = undefined'
-  //    3. async cascade delete that bootcamps courses when the bootcamp is deleted
-  //    4. virtual(): are properties, not middleware and are useful because can use
-  //        'get()' and 'set()' without persisting, so can use for formatting or combining fields
-  //       must add the 'toJSON: { virtuals: true }, toObject: { virtuals: true } at bottom of schema
-  //       in this case it reverse populates the courses
+// Hook Middleware & Virtuals
+// ------------------------------
+  // 'Bootcamp.create()': same as 'save()', which triggers these hooks 'pre('save', fn())', 'post('save', fn())', etc...
+  // 'hooks': hook a middleware function (note: mid funcs use 'next()') pre or post action
+  // 'virtual()': are document properties that you can 'get()' and 'set()' without persisting to MongoDB,
+  //              so you can use for formatting or combining fields             
+
+// Slugify Middleware
+  // using hooks, (hooking function pre save), synchronously creates a slug
+  // which is a url-friendly version of the bootcamp name 'ABC Bootcamp' = 'abc-bootcamp'
 BootcampSchema.pre('save', function(next) {
   // console.log('Slugify ran', this.name);
   this.slug = slugify(this.name, { lower: true });
   next();
 });
 
+// Geocode Middleware
+  // - async formats address data for geocode api and saves as 'location' &
+  // - prevents old address format to be saved in db 'this.address = undefined'
 BootcampSchema.pre('save', async function(next) {
   const loc = await geocoder.geocode(this.address);
   this.location = {
@@ -134,12 +144,18 @@ BootcampSchema.pre('save', async function(next) {
   next();
 });
 
+// Delete Bootcamps' Courses Middleware
+  // async cascade delete that bootcamps' courses when the bootcamp is deleted
 BootcampSchema.pre('remove', async function(next) {
   console.log(`Courses being removed from bootcamp ${this._id}`);
   await this.model('Course').deleteMany({ bootcamp: this._id });
   next();
 });
 
+// Bootcamp/Course Relationship Virtual
+  // allows us to relate the bootcamp to its courses in db
+  // must add to schema fields 'toJSON: { virtuals: true }, toObject: { virtuals: true } 
+  // in this case reverse populating the courses
 BootcampSchema.virtual('courses', {
   ref: 'Course',
   localField: '_id',

@@ -36,6 +36,8 @@ exports.protect = asyncHandler(async function(req, res, next) {
 });
 
 // Grant Role Specific Access
+  // gets the user role and if its not an authorized role generates an error
+  // - must return synch function so we can pass roles on that step with 'next()' since its midware
 exports.authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
