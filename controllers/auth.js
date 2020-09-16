@@ -48,8 +48,47 @@ exports.login = asyncHandler(async (req, res, next) => {
   sendTokenResponse(user, 200, res);
 });
 
+// @desc    Current Logged User
+  // @route   POST /api/v1/auth/me
+  // @access  Private
+  // @details: 
+    // to be able to get user access data, ex clicking on 'profile' page,
+    // must be existing user and logged in
+exports.getMe = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
 
-// @desc    Create Cookie from Token
+  res.status(200).json({
+    success: true,
+    data: user
+  });
+});
+
+// @desc    Forgot Password
+  // @route   POST /api/v1/auth/forgotpassword
+  // @access  Public
+  // @details: 
+    // if user forgets pwd and enters multiple, we want to reset token everytime
+    // so only correct pwd enter matches session token
+    // - find the user with that email, if not error response
+    // - get un-hashed reset pwd token
+    // - save user without validating fields before save, since fields will be updated 
+    //   (make sure pre(save) hook fn has if 'this.isModified(pwd)' logic 'next()')
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new ErrorResponse('There is no user with that email', 404));
+  }
+  const resetToken = user.getResetPasswordToken();
+  await user.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    success: true,
+    data: user
+  });
+});
+
+
+// Create Cookie from Token
   // creates a session token to get access with credentials 'signed in status' and stores in cookies to save to browser
   // so not to have to request token everytime, tokens are unique for that session so user can have private access
   // until session expires or cookies
@@ -76,18 +115,3 @@ const sendTokenResponse = (user, statusCode, res) => {
       token
     });
 };
-
-// @desc    Current Logged User
-  // @route   POST /api/v1/auth/me
-  // @access  Private
-  // @details: 
-    // to be able to get user access data, ex clicking on 'profile' page,
-    // must be existing user and logged in
-exports.getMe = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user.id);
-
-  res.status(200).json({
-    success: true,
-    data: user
-  });
-});

@@ -45,8 +45,7 @@ exports.getCourse = asyncHandler(async (req, res, next) => {
 
   if (!course) {
     return next(
-      new ErrorResponse(`No course with the id of ${req.params.id}`), 
-      404
+      new ErrorResponse(`No course with the id of ${req.params.id}`, 404)
     );
   }
 
@@ -63,16 +62,23 @@ exports.getCourse = asyncHandler(async (req, res, next) => {
     // - 'req.body.bootcamp = req.params.bootcampId': assigns the course to the bootcamp
     //                   remember 'CourseSchema' has a 'bootcamp' field to reference course
     //                   thats what this handles
+    // - same thing to relate course to 'user'
     // - then we're fetching that bootcamp with id and if doesn't exist creating error response
     //   otherwise creating the course sending data
 exports.addCourse = asyncHandler(async (req, res, next) => {
   req.body.bootcamp = req.params.bootcampId;
+  req.body.user = req.user.id;
 
   const bootcamp = await Bootcamp.findById(req.params.bootcampId);
   if (!bootcamp) {
     return next(
-      new ErrorResponse(`No bootcamp with the id of ${req.params.bootcampId}`), 
-      404
+      new ErrorResponse(`No bootcamp with the id of ${req.params.bootcampId}`, 404)
+    );
+  }
+
+  if (bootcamp.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(`User ${req.user.id} is not authorized to add a course to bootcamp ${bootcamp._id}`, 401)
     );
   }
   const course = await Course.create(req.body);
@@ -88,6 +94,7 @@ exports.addCourse = asyncHandler(async (req, res, next) => {
   // @access  Private 
   // @details
     // - fetch course with id & if doesn't exist to create error response
+    // - if user is not owner or admin do error response
     // - otherwise fetch and update '[document].findByIdAndUpdate(id, body, options)'
     //   'new: true' since its the updated and 'runValidators' to check all fields are there
     // - send response data
@@ -96,8 +103,13 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
 
   if (!course) {
     return next(
-      new ErrorResponse(`No course found with the id of ${req.params.id}`), 
-      404
+      new ErrorResponse(`No course found with the id of ${req.params.id}`, 404)
+    );
+  }
+
+  if (course.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(`User ${req.user.id} is not authorized to update course ${course._id}`, 401)
     );
   }
 
@@ -117,14 +129,21 @@ exports.updateCourse = asyncHandler(async (req, res, next) => {
   // @access  Private 
   // @details
     // - fetch course by id & create error response if doesn't exist
+    // - if 'course.user' (CourseSchema has relation 'mongoose.Schema.ObjectId'), so if
+    //   not equal to user id or role = 'admin' do error response
     // - otherwise remove it and send response data
 exports.deleteCourse = asyncHandler(async (req, res, next) => {
   const course = await Course.findById(req.params.id);
 
   if (!course) {
     return next(
-      new ErrorResponse(`No course found with the id of ${req.params.id}`), 
-      404
+      new ErrorResponse(`No course found with the id of ${req.params.id}`, 404)
+    );
+  }
+
+  if (course.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    return next(
+      new ErrorResponse(`User ${req.user.id} is not authorized to delete course ${course._id}`, 401)
     );
   }
 

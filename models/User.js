@@ -1,13 +1,15 @@
-// User Model
-  // - name: username will be required
-  // - email: in this case required and unique since you don't want duplicates
-  // - role: 'user' (default role) can write reviews and 'publisher' who created bootcamp/course info
-  // - minlength: password has to be 6 chars minimum
-  // - select: to not return the user pwd since we're gonna encrypt and create token
+
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+// User Model
+  // - name: username will be required
+  // - email: in this case required and unique since you don't want duplicates
+  // - role: 'user' (default role) can write reviews and 'publisher' who created bootcamp/course info
+  // - password: min of 6 chars and wont 'select' since will encrypt (bcrypt, jwt)
+  // - resetPasswordToken/Expire: reset pwd token (crypto)
 const UserSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -46,10 +48,14 @@ const UserSchema = new mongoose.Schema({
 
 // Encrypt Password
   // encrypts or 'hashes' pwd prior to saving, which is triggered on 'User.create()'
+  // - if pwd is modified continue, otherwise create salt
   // - 'salt' is the random data that is created to hide password
   // - bcrypt.genSalt(10): generate a salt of 10 characters
   // - bcrypt.hash(pwd, salt): 'hash' password, or make pwd the salt created
 UserSchema.pre('save', async function(next) {
+  if (!this.isModified('password')) {
+    next();
+  }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
@@ -72,5 +78,22 @@ UserSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
+// Reset Pwd Token
+  // 'crypto' is a NodeJS module, docs: https://www.nodejs.org/api/crypto
+  // 'token' & 'pwd token' are two diff nums
+  // - 'resetToken': generate new token with random bytes in hexadecimal
+  // - 'this.resetPasswordToken': resets field with hashed 'resetToken' to store in db
+  // - set new expiration date
+  // - return un-hashed 'resetToken'
+UserSchema.methods.getResetPasswordToken = function() {
+  const resetToken = crypto.randomBytes(20).toString('hex');
+  this.resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+  return resetToken;
+};
 
 module.exports = mongoose.model('User', UserSchema);
