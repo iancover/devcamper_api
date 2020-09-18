@@ -13,10 +13,11 @@ const asyncHandler = require('../middleware/async');
 const geocoder = require('../utils/geocoder');
 const Bootcamp = require('../models/Bootcamp');
 
-// @desc    Get all Bootcamps (or specific bootcamps with query params)
+// @desc    Get all Bootcamps
   // @route   GET /api/v1/bootcamps
   // @access  Public 
-  // @details: handles params passed on query for sorting, pagination, etc
+  // @details: gets all the bootcamps, use a response middleware to manage query params
+    //        'advancedResults': handles params passed on query for sorting, pagination, etc
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
   res.status(200).json(res.advancedResults);
 });
@@ -134,8 +135,24 @@ exports.getBootcampsInRadius = asyncHandler(async (req, res, next) => {
   // @details
     // - fetch bootcamp by id, if not create error response
     // - check if authorized user to upload pic, must be 'publisher' or 'admin'
-    // - if req has no 'files', also create error response
-    // 
+    // - 'req.files': if request has no files, also create error response
+    //               note: request object has a files field 'req.files', when uploading a file
+    //               'app.use(fileUpload())' on 'server.js' allows upload 
+    // - 'req.files.file': the file uploaded will be labeled 'file', and should have a 'mimetype' that should
+    //                     start with 'image' if its a 'jpg', 'jpeg', etc. check response on Postman or console log
+    //                     if 'mimetype' doesn't start with 'image' then create error response
+    // - 'file.size': check limit file size upload, (can also set limit w/fileUpload({ limits: { x * x * x }}))
+    // - 'file.name': create unique file name to prevent user upload img with same name
+    //               in which case system replaces to latest uploaded and we don't want that
+    //               'photo_${bootcamp._id}${path.parse(file.name).ext}' 
+    //               'photo_' + 'bootcamp._id': (5d725a1b7b292f5f8ceff788) + 'path.parse(file.name).ext': (jpg)
+    //               creates -> 'photo_5d725a1b7b292f5f8ceff788.jpg'
+    // - 'file.mv(path, fn)': move to path or name path 'file.mv('./public/uploads', async fn())'
+    //                       because 'process.env' points to '/config/config.env'
+    //                       'FILE_UPLOAD_PATH= ./public/uploads'
+    // - 'Bootcamp.findByIdAndUpdate(id,data)': remember Bootcamp model has field we're updating
+    //                                         'photo: { type: String, default: 'no-photo.jpg' }'
+    //                                        and the endpoint/route is: /api/v1/bootcamps/:id/photo
 exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
   const bootcamp = await Bootcamp.findById(req.params.id);
   if (!bootcamp) {
@@ -148,21 +165,12 @@ exports.bootcampPhotoUpload = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Please upload a file`, 400));
   } 
   const file = req.files.file;
-  
-  // Verify img is a photo
   if (!file.mimetype.startsWith('image')) {
     return next(new ErrorResponse(`Please upload an image file`, 400));
   }
-
-  // Check filesize is too big
   if (file.size > process.env.MAX_FILE_UPLOAD) {
     return next(new ErrorResponse(`Please upload an image less than ${process.env.MAX_FILE_UPLOAD}`, 400));
   }
-
-  // Create custom file name
-    // - wanna create unique names for files that are uploaded in case other user uploads img with same name
-    //   system will override it
-    // - using built-in pkg 'path' which gets file extension: 'path.parse().ext'
   file.name = `photo_${bootcamp._id}${path.parse(file.name).ext}`;
   file.mv(`${process.env.FILE_UPLOAD_PATH}/${file.name}`, async err => {
     if (err) {

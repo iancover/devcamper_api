@@ -1,10 +1,10 @@
-// Bootcamps REST Routers
+// BOOTCAMPS REST ROUTERS
   // this module handles routes for bootcamp requests
   // routers make code more efficient that way we can 
   // simply apply the request controller function
 const express = require('express');
 
-// Import Bootcamp Ctrlr & Courses Router
+// Bootcamp Controllers
 const { 
   getBootcamps, 
   getBootcamp, 
@@ -15,12 +15,18 @@ const {
   bootcampPhotoUpload
  } = require('../controllers/bootcamps');
 
+// Bootcamp Model
 const Bootcamp = require('../models/Bootcamp');
+
+// Middleware
+  // 'advancedResults': handles the select, limits, etc. for pagination
 const advancedResults = require('../middleware/advancedResults');
 
+// Courses Router
+  // we need this router since we need to be able to get the courses for the bootcamp
 const courseRouter = require('./courses');
 
-// Router Setup
+// Bootcamps Router Setup
   // is like a 'mini-application' capable of performing middleware and routing functions
 const router = express.Router();
 
@@ -34,6 +40,7 @@ const { protect, authorize } = require('../middleware/auth');
 router.use('/:bootcampId/courses', courseRouter);
 
 // Route: Get Bootcamps in Radius
+  // this route's reques uses 'geocoder', we dont need module here though
 router
   .route('/radius/:zipcode/:distance')
   .get(getBootcampsInRadius);

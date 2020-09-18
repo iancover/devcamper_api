@@ -1,3 +1,11 @@
+// BOOTCAMP MODEL & SCHEMA
+
+// Dependencies
+  // mongoose: builds the schema and model
+  // slugify: modifies name to url friendly endpoint
+  //          https://www.npmjs.com/package/slugify
+  // node-geocoder: (check /utils/geocoder) allows to use the 'location' field data for locating on map
+  //               https://www.npmjs.com/package/node-geocoder
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 const geocoder = require('../utils/geocoder');
@@ -118,6 +126,8 @@ const BootcampSchema = new mongoose.Schema({
 // Slugify Middleware
   // using hooks, (hooking function pre save), synchronously creates a slug
   // which is a url-friendly version of the bootcamp name 'ABC Bootcamp' = 'abc-bootcamp'
+  // default separator is '-', to add something different like '_', then:
+  //  'slugify(this.name, { replacement: '_', lower: true })
 BootcampSchema.pre('save', function(next) {
   // console.log('Slugify ran', this.name);
   this.slug = slugify(this.name, { lower: true });

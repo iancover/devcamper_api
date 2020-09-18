@@ -1,4 +1,12 @@
+// USER SCHEMA & MODEL
 
+// Dependencies
+  // - crypto: node built-in module 
+  //           https://nodejs.org/api/crypto.html
+  // - mongoose: 'mongoose.Schema()', 'mongoose.Model()' or 'Schema.pre(hook, fn)'
+  // - bcryptjs: npm module for generating salt to hash pwd, 'bcrypt.genSalt()' or 'bcrypt.hash(pwd, salt)'
+  //          https://www.npmjs.com/package/bcryptjs
+  // - jsonwebtoken: 
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
@@ -48,7 +56,7 @@ const UserSchema = new mongoose.Schema({
 
 // Encrypt Password
   // encrypts or 'hashes' pwd prior to saving, which is triggered on 'User.create()'
-  // - if pwd is modified continue, otherwise create salt
+  // - if pwd is modified continue (w/resetPwdToken), otherwise create salt
   // - 'salt' is the random data that is created to hide password
   // - bcrypt.genSalt(10): generate a salt of 10 characters
   // - bcrypt.hash(pwd, salt): 'hash' password, or make pwd the salt created
