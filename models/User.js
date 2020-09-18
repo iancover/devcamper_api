@@ -51,10 +51,10 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
-// MIDDLEWARE
+// Middleware
 // -----------------
 
-// Encrypt Password
+// Hook: Encrypt Password
   // encrypts or 'hashes' pwd prior to saving, which is triggered on 'User.create()'
   // - if pwd is modified continue (w/resetPwdToken), otherwise create salt
   // - 'salt' is the random data that is created to hide password
@@ -68,7 +68,7 @@ UserSchema.pre('save', async function(next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Create Web Token
+// Method: Create Web Token
   // creates token synchronously w/jsonwebtoken that expires in 'JWT_EXPIRE' time
   // - 'methods': used on what is modeled
   // - 'jwt.sign(payload, key, options)': creats a web token which has 3 parts 'header.payload.verify-signature'
@@ -80,13 +80,14 @@ UserSchema.methods.getSignedJwtToken = function() {
   });
 };
 
-// Verify Password
+// Method: Verify Password
   // - asynchronously, see if user entered password matches the hashed pwd in database
+  // - used in controllers: 'login()' and 'updatePassword()'
 UserSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Reset Pwd Token
+// Method: Reset Pwd Token
   // 'crypto' is a NodeJS module, docs: https://www.nodejs.org/api/crypto
   // 'token' & 'pwd token' are two diff nums
   // - 'resetToken': generate new token with random bytes in hexadecimal
