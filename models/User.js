@@ -1,6 +1,8 @@
 // USER SCHEMA & MODEL
+// ------------------------
 
 // Dependencies
+// ------------------
   // - crypto: node built-in module 
   //           https://nodejs.org/api/crypto.html
   // - mongoose: 'mongoose.Schema()', 'mongoose.Model()' or 'Schema.pre(hook, fn)'
@@ -12,7 +14,8 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// User Model
+// User Schema
+// --------------
   // - name: username will be required
   // - email: in this case required and unique since you don't want duplicates
   // - role: 'user' (default role) can write reviews and 'publisher' who created bootcamp/course info
@@ -53,7 +56,6 @@ const UserSchema = new mongoose.Schema({
 
 // Middleware
 // -----------------
-
 // Hook: Encrypt Password
   // encrypts or 'hashes' pwd prior to saving, which is triggered on 'User.create()'
   // - if pwd is modified continue (w/resetPwdToken), otherwise create salt

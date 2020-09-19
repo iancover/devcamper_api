@@ -1,3 +1,5 @@
+// COURSES ROUTER
+// ----------------
 
 const express = require('express');
 

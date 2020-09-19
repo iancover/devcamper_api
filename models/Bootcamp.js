@@ -1,4 +1,5 @@
-// BOOTCAMP MODEL & SCHEMA
+// BOOTCAMPS SCHEMA & MODEL
+// -------------------------
 
 // Dependencies
   // mongoose: builds the schema and model

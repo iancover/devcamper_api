@@ -25,6 +25,7 @@ const advancedResults = require('../middleware/advancedResults');
 // Courses Router
   // we need this router since we need to be able to get the courses for the bootcamp
 const courseRouter = require('./courses');
+const reviewRouter = require('./reviews');
 
 // Bootcamps Router Setup
   // is like a 'mini-application' capable of performing middleware and routing functions
@@ -35,9 +36,10 @@ const router = express.Router();
   // - user needs to be logged in to: upload photo, create, update & delete bootcamps
 const { protect, authorize } = require('../middleware/auth');
 
-// Re-route: Bootcamp Courses
+// Re-route: Bootcamp Courses & Reviews
   // - re-route from course router to get courses per bootcamp
 router.use('/:bootcampId/courses', courseRouter);
+router.use('/:bootcampId/reviews', reviewRouter);
 
 // Route: Get Bootcamps in Radius
   // this route's reques uses 'geocoder', we dont need module here though

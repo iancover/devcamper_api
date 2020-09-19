@@ -1,3 +1,5 @@
+// COURSES SCHEMA & MODEL
+// ------------------------
 
 const mongoose = require('mongoose');
 
