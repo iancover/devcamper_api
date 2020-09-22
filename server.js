@@ -28,6 +28,8 @@
   //                      https://www.npmjs.com/package/express-rate-limit
   // - hpp: helps protect against parameter pollution
   //        https://www.npmjs.com/package/hpp
+  // - cors: allow cross-origin resource sharing, for apps connected from different domain
+  //         https://github.com/expressjs/cors
 const path = require('path');
 const express = require('express');
 const dotenv = require('dotenv');
@@ -40,6 +42,7 @@ const helmet = require('helmet');
 const xss = require('xss-clean');
 const rateLimit = require('express-rate-limit');
 const hpp = require('hpp');
+const cors = require('cors');
  
 // Import Error & DB Connection
   // errorHandler - middleware
@@ -80,6 +83,7 @@ app.use(helmet());
 app.use(xss());
 app.use(rateLimit({ windowsMs: 10 * 60 * 1000, max: 100 }));
 app.use(hpp());
+app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/v1/bootcamps', bootcamps);
 app.use('/api/v1/courses', courses);
