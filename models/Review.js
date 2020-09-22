@@ -37,9 +37,14 @@ const ReviewSchema = new mongoose.Schema({
   }
 });
 
-// One Review per Bootcamp
+// One Bootcamp Review per User
   // prevents a user from writing more than 1 review per bootcamp
-ReviewSchema.index({ bootcamp: 1, user: 1 }, { unique: true });
+ReviewSchema.index({ 
+  bootcamp: 1, 
+  user: 1 
+}, { 
+  unique: true 
+});
 
 // Static: Avg Rating Method
   // remember 'statics' are called on the model itself to modify something about it
