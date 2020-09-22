@@ -6,6 +6,7 @@ const router = express.Router();
 const { 
   register, 
   login, 
+  logout,
   getMe, 
   forgotPassword,
   resetPassword,
@@ -19,6 +20,7 @@ const { protect } = require('../middleware/auth');
 // Routes
   // - 'post( reg-rte, reg-ctrl )': to register new user
   // - 'post( log-rte, log-ctrl )': to login existing user
+  // - 'get( logout-rte, logout-ctrl ): to logout
   // - 'get( me-rte, private, me-ctrl ): to get current logged in user (private)
   // - 'put( upd-dtail-rte, private, upd-dtail-ctrl ): to update name/email (private)
   // - 'put( upd-pwd-rte, private, upd-pwd-ctrl ): to update pwd (private)
@@ -26,6 +28,7 @@ const { protect } = require('../middleware/auth');
   // - 'put( reset-pwd-rte, reset-pwd-ctrl ): update/reset pwd w/email link
 router.post('/register', register);
 router.post('/login', login);
+router.get('/logout', logout);
 router.get('/me', protect, getMe);
 router.put('/updatedetails', protect, updateDetails);
 router.put('/updatepassword', protect, updatePassword);

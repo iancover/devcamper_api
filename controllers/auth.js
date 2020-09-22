@@ -60,6 +60,28 @@ exports.login = asyncHandler(async (req, res, next) => {
   sendTokenResponse(user, 200, res);
 });
 
+// @desc    Logout User / Clear Cookie
+// @route   GET /api/v1/auth/logout
+// @access  Private
+// @details: log user out and clear the session cookie
+  // - 'res.cookie()': using Express response method '.cookie( name, value, opts )'
+  //                  we clear the token with 'token', 'none' and set the cookie
+  //                   to expire in 10 seconds
+  // - options:
+  //   'expires': when you want cookie session to expire
+  //   'httpOnly': flags the cookie to be accessible only by the web server
+exports.logout = asyncHandler(async (req, res, next) => {
+  res.cookie('token', 'none', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true
+  });
+
+  res.status(200).json({
+    success: true,
+    data: {}
+  });
+});
+
 // @desc    Current Logged User
 // @route   POST /api/v1/auth/me
 // @access  Private
