@@ -1,5 +1,8 @@
 // DATABASE SEEDER
   // this module connects to db, seeds and destroys data from '/_data' directory
+  // to run this, you must stop the server and run on console
+  // to seed db: 'node seeder -s' 
+  // to delte db: 'node seeder -d'
 // --------------------------------------------------
 
 // Dependencies

@@ -240,6 +240,9 @@ exports.resetPassword = asyncHandler(async (req, res, next) => {
   // until session expires or cookies
   // - need to set same 30 days expiration in cookie as well, so we pass options
   //   in options create new Date() object making expire date 30 days from today
+  //   'expires' field needs to be in milliseconds
+  //   JWT_COOKIE_EXPIRE = days
+  //   JWT_COOKIE_EXPIRE * 24(hrs) * 60(mins) * 60(secs) * 1000(millisecs)
   // - set 'secure' flag only when in 'production' not development
   // - send response with 'statusCode', tokenized cookie w/options
 const sendTokenResponse = (user, statusCode, res) => {

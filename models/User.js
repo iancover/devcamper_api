@@ -8,7 +8,8 @@
   // - mongoose: 'mongoose.Schema()', 'mongoose.Model()' or 'Schema.pre(hook, fn)'
   // - bcryptjs: npm module for generating salt to hash pwd, 'bcrypt.genSalt()' or 'bcrypt.hash(pwd, salt)'
   //          https://www.npmjs.com/package/bcryptjs
-  // - jsonwebtoken: 
+  // - jsonwebtoken: creates a web token
+  //                https://www.npmjs.com/package/jsonwebtoken
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
@@ -74,8 +75,8 @@ UserSchema.pre('save', async function(next) {
   // creates token synchronously w/jsonwebtoken that expires in 'JWT_EXPIRE' time
   // - 'methods': used on what is modeled
   // - 'jwt.sign(payload, key, options)': creats a web token which has 3 parts 'header.payload.verify-signature'
-  // - 'this' represents the user, so we pass '_id' with underscore to 'jwt.sign()' 
-  //   passing also env variables for secret key and expiration time (30 days) 
+  // - 'this' represents the 'user' which is the payload, so we pass '_id' with underscore to 'jwt.sign()' 
+  //   passing also env variables for secret key and expiration time (30 days)
 UserSchema.methods.getSignedJwtToken = function() {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE
