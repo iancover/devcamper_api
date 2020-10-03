@@ -1,5 +1,8 @@
 // BOOTCAMP CONTROLLERS
 // -------------------------
+  // Controller modules for the bootcamps
+  // 'exports.myController =': uses CommonJS 'exports' statement to export 'myController' as a module
+  // 
 
 // Dependencies
   // path - node built-in module for working with local directories, (used to parse file.name)

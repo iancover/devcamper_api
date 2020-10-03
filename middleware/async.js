@@ -6,6 +6,7 @@
   // - Promises are objects so must be returned
   //   'return Promise.resolve().catch()' - will resolve, or catch error
   //                                        and let next process run without interrupting flow
+  // - 'module.exports': exports the function 'asyncHandler()' as the module itself
 const asyncHandler = fn => (req, res, next) => 
   Promise.resolve(fn(req, res, next)).catch(next);
 
