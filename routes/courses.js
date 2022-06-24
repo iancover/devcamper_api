@@ -1,43 +1,37 @@
-// COURSES ROUTER
-// ----------------
-
 const express = require('express');
-
-const { 
-  getCourses, 
-  getCourse, 
-  addCourse, 
-  updateCourse, 
-  deleteCourse 
-} = require('../controllers/courses');
-
-const Course = require('../models/Course');
-const advancedResults = require('../middleware/advancedResults');
-
-// Router Setup
-  // - must merge url params to pass bootcamp id from bootcamps router
-  //   so controllers can get the courses of a bootcamp
 const router = express.Router({ mergeParams: true });
+// to send course Id and bootcamp Id in url params
 
-// Protect Routes Middleware
-  // anywhere the user must be logged in, we pass this middleware
-  // - user needs to be logged in to: create, update & delete courses
+// Controllers
+const {
+  getCourses,
+  getCourse,
+  addCourse,
+  updateCourse,
+  deleteCourse,
+} = require('../controllers/courses');
+// Models
+const Course = require('../models/Course');
+// Middleware
+const advancedResults = require('../middleware/advancedResults');
 const { protect, authorize } = require('../middleware/auth');
 
-// Route: Add Course
-  // - route to get courses applying 'advancedResults()' middleware to just get 'name' & 'desc' of course
-  //   maintaining 'path' to the bootcamp it belongs
-  // - route to create course, 'protect' so only logged in user can
+// Routes
+// -----------
+
+// Get courses & add course
 router
   .route('/')
-  .get(advancedResults(Course, {
-    path: 'bootcamp',
-    select: 'name description'
-  }), getCourses)
+  .get(
+    advancedResults(Course, {
+      path: 'bootcamp',
+      select: 'name description',
+    }),
+    getCourses
+  )
   .post(protect, authorize('publisher', 'admin'), addCourse);
-  
-// Route: Update & Delete Course
-  // - gets course w/id updates or deletes, 'protect' so only logged in user can do it
+
+// Get, update & delete course
 router
   .route('/:id')
   .get(getCourse)

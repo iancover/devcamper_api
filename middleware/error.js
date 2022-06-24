@@ -1,19 +1,7 @@
-// Error Handler Middleware
-  // this module handles the error responses 
-  // using the 'errorResponse' constructor builds
-  // specific response messages based on status code
+// Utils
 const ErrorResponse = require('../utils/errorResponse');
 
-// @desc Different ways to log db error messages based on types
-  // - get the error and extract the content of 'message' field
-  // - build error message with 'ErrorResponse' module passing message
-  // - log entire error obj 'err' for developer to see
-  // - Mongoose errors:
-  //    Bad ObjectId - gets a 'CastError' error
-  //    Duplicate Key - gets error code '11000'
-  //    Validation Error - displays the name of error
-  // - res.status(): if any of previous errors status code or 500
-  //                 success = false, and send err msg or default 'Server Error'
+// Handle response error msg
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;

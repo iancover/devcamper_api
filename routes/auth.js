@@ -1,38 +1,32 @@
-// Auth Router
 const express = require('express');
 const router = express.Router();
 
-// Auth Controllers 
-const { 
-  register, 
-  login, 
+// Controllers
+const {
+  register,
+  login,
   logout,
-  getMe, 
+  getMe,
   forgotPassword,
   resetPassword,
   updateDetails,
-  updatePassword
+  updatePassword,
 } = require('../controllers/auth');
 
-// Auth Middleware
+// Auth middleware
 const { protect } = require('../middleware/auth');
 
-// Routes
-  // - 'post( reg-rte, reg-ctrl )': to register new user
-  // - 'post( log-rte, log-ctrl )': to login existing user
-  // - 'get( logout-rte, logout-ctrl ): to logout
-  // - 'get( me-rte, private, me-ctrl ): to get current logged in user (private)
-  // - 'put( upd-dtail-rte, private, upd-dtail-ctrl ): to update name/email (private)
-  // - 'put( upd-pwd-rte, private, upd-pwd-ctrl ): to update pwd (private)
-  // - 'post( forgot-pwd-rte, forgot-pwd-ctrl ): send email to reset pwd to login
-  // - 'put( reset-pwd-rte, reset-pwd-ctrl ): update/reset pwd w/email link
+// Public routes
 router.post('/register', register);
 router.post('/login', login);
 router.get('/logout', logout);
+router.post('/forgotpassword', forgotPassword);
+router.put('/resetpassword/:resettoken', resetPassword);
+
+// Private routes
 router.get('/me', protect, getMe);
 router.put('/updatedetails', protect, updateDetails);
 router.put('/updatepassword', protect, updatePassword);
-router.post('/forgotpassword', forgotPassword);
-router.put('/resetpassword/:resettoken', resetPassword);
+
 
 module.exports = router;
