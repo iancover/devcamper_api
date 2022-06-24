@@ -2,6 +2,8 @@
 
 [Node/](https://nodejs.org)[Express](https://expressjs.com) _REST API_ for a web development bootcamp directory. Uses multiple [npm](https://npmjs.com) packages to add extra layers of security and protection for apps.
 
+Serves the _API_ documentation using [Postman](https://www.postman.com/) on [PORT: 5000](http://localhost:5000)
+
 ---
 
 ## Auth Dependencies
@@ -55,3 +57,17 @@ npm start
 ## Setup
 
 Rename `config/config.env.env` to `config/config.env` and add your values.
+
+To _seed_ and _destroy_ the database with the _JSON_ in the `/_data` folder running the `seeder.js` file
+
+```sh
+npm run seed
+
+npm run destroy
+```
+
+---
+
+### Original Source
+
+This project was built following the [Udemy]() course [Node.js API Masterclass With Express & MongoDB](https://www.udemy.com/share/1025ES3@3HgPf9UbkA8LfPXGiERiRGQVn3CUvoaZr2IlnnetuvWBoit9mhlzcT5YOzDUnjAS/) by [Brad Traversy](https://www.udemy.com/user/brad-traversy/) and you can view the original project's repo here [bradtraversy/devcamper-api](https://github.com/bradtraversy/devcamper-api)

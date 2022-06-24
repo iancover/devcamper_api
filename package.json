@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "NODE_ENV=production node server",
-    "dev": "nodemon server"
+    "dev": "nodemon server",
+    "seed": "node seeder -i",
+    "destroy": "node seeder -d"
   },
   "repository": {
     "type": "git",
